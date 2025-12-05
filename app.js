@@ -25,14 +25,19 @@ window.login = async () => {
 window.logout = () => signOut(auth);
 
 onAuthStateChanged(auth, u => {
-    document.getElementById('login-container').style.display = u ? 'none' : 'flex';
-    document.getElementById('dashboard-container').style.display = u ? 'flex' : 'none';
-    if(u) initDashboard();
+    if (u) {
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('dashboard-container').style.display = 'flex';
+        initDashboard();
+    } else {
+        document.getElementById('login-container').style.display = 'flex';
+        document.getElementById('dashboard-container').style.display = 'none';
+    }
 });
 
 // --- DASHBOARD ---
 function initDashboard() {
-    // REQUESTS
+    // REQUESTS LISTENER
     onValue(ref(db, 'Requests'), snap => {
         const data = snap.val();
         if(!data) { updateStats([]); return; }
@@ -45,12 +50,13 @@ function initDashboard() {
         if(data.ExitPass) process(data.ExitPass, "Exit Pass", all);
 
         all.sort((a,b) => new Date(b.date) - new Date(a.date));
+        
         updateStats(all);
         renderCharts(all);
         renderTable(all);
     });
 
-    // LOST & FOUND
+    // LOST & FOUND LISTENER
     onValue(ref(db, 'LostAndFound'), snap => {
         const data = snap.val();
         const tbody = document.getElementById('lf-table-body');
@@ -65,8 +71,8 @@ function initDashboard() {
                     <tr style="border-bottom:1px solid #eee;">
                         <td style="padding:10px;">${img}</td>
                         <td style="padding:10px;">
-                            <div style="font-weight:bold; color:#004B8D;">${item.ItemName}</div>
-                            <div style="font-size:11px; color:#888;">${item.LocationFound} • ${new Date(item.DateFound).toLocaleDateString()}</div>
+                            <div style="font-weight:bold; color:#004B8D; font-size:14px;">${item.ItemName}</div>
+                            <div style="font-size:12px; color:#888;">${item.LocationFound}</div>
                         </td>
                         <td style="text-align:right; padding-right:10px;">
                             <button class="btn-delete" onclick="deleteLostItem('${key}')">Delete</button>
@@ -88,7 +94,7 @@ function process(catData, type, arr) {
             image: i.ParentLetterImage || null
         };
         arr.push(obj);
-        requestsMap[k] = obj;
+        requestsMap[k] = obj; // Stores data for modal
     });
 }
 
@@ -100,7 +106,6 @@ function updateStats(data) {
 }
 
 function renderCharts(data) {
-    // BAR CHART
     const types = { "Admission": 0, "Gate Pass": 0, "Exit Pass": 0 };
     data.forEach(x => { if(x.type.includes("Admission")) types["Admission"]++; else if(x.type.includes("Gate")) types["Gate Pass"]++; else types["Exit Pass"]++; });
     
@@ -108,7 +113,6 @@ function renderCharts(data) {
     if (barChart) barChart.destroy();
     barChart = new Chart(ctxBar, { type: 'bar', data: { labels: Object.keys(types), datasets: [{ label: 'Requests', data: Object.values(types), backgroundColor: ['#004B8D', '#002F5D', '#FFD100'] }] }, options: { responsive: true, maintainAspectRatio: false } });
 
-    // DOUGHNUT CHART
     const statuses = { "Pending": 0, "Ready DO": 0, "Done": 0, "Rejected": 0 };
     data.forEach(x => { if(x.status === "Pending") statuses["Pending"]++; else if(x.status === "Teacher Approved") statuses["Ready DO"]++; else if(x.status === "DO Approved") statuses["Done"]++; else statuses["Rejected"]++; });
     
@@ -127,7 +131,8 @@ function renderTable(data) {
         if(item.status === "DO Approved") color = "#2E7D32";
         if(item.status === "Rejected") color = "#C62828";
 
-        const actionHtml = `<button onclick="viewDetails('${item.id}')" style="background:#EEE; color:#333; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px;">View</button>`;
+        // VIEW BUTTON
+        const actionHtml = `<button onclick="viewDetails('${item.id}')" style="background:#EEE; color:#333; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px;">View</button>`;
 
         tbody.innerHTML += `<tr><td>${new Date(item.date).toLocaleDateString()}</td><td><b>${item.type}</b></td><td>${item.student}</td><td><span style="color:${color}; font-weight:bold;">${item.status}</span></td><td>${actionHtml}</td></tr>`;
     });
@@ -137,6 +142,7 @@ function renderTable(data) {
 window.viewDetails = function(id) {
     const item = requestsMap[id];
     if(!item) return;
+
     document.getElementById('m-student').innerText = item.student;
     document.getElementById('m-date').innerText = new Date(item.date).toLocaleString();
     document.getElementById('m-details').innerText = item.details;
@@ -151,7 +157,7 @@ window.viewDetails = function(id) {
     if(item.status === "Teacher Approved") {
         actions.innerHTML = `<button onclick="setStatus('${item.rawType}','${item.id}','DO Approved'); closeModal()" class="btn-primary" style="background:#2E7D32; margin-right:10px;">Final Approve</button><button onclick="setStatus('${item.rawType}','${item.id}','Rejected'); closeModal()" class="btn-primary" style="background:#C62828;">Reject</button>`;
     } else {
-        actions.innerHTML = `<span style="color:gray; font-size:12px;">No actions available.</span>`;
+        actions.innerHTML = `<span style="color:gray; font-size:12px;">Action completed or not yet available.</span>`;
     }
     document.getElementById('request-modal').style.display = 'block';
 }
