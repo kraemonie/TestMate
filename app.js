@@ -123,7 +123,13 @@ function renderCharts(data) {
     
     const ctxBar = document.getElementById('barChart').getContext('2d');
     if (barChart) barChart.destroy();
-    barChart = new Chart(ctxBar, { type: 'bar', data: { labels: Object.keys(types), datasets: [{ label: 'Requests', data: Object.values(types), backgroundColor: ['#004B8D', '#002F5D', '#FFD100'] }] }, options: { responsive: true, maintainAspectRatio: false } });
+    
+    // UPDATED: maintainAspectRatio: false
+    barChart = new Chart(ctxBar, { 
+        type: 'bar', 
+        data: { labels: Object.keys(types), datasets: [{ label: 'Requests', data: Object.values(types), backgroundColor: ['#004B8D', '#002F5D', '#FFD100'] }] }, 
+        options: { responsive: true, maintainAspectRatio: false } 
+    });
 
     const statuses = { "Pending": 0, "Ready DO": 0, "Done": 0, "Rejected": 0 };
     data.forEach(x => { if(x.status === "Pending") statuses["Pending"]++; else if(x.status === "Teacher Approved") statuses["Ready DO"]++; else if(x.status === "DO Approved") statuses["Done"]++; else statuses["Rejected"]++; });
@@ -131,7 +137,7 @@ function renderCharts(data) {
     const ctxPie = document.getElementById('doughnutChart').getContext('2d');
     if (doughnutChart) doughnutChart.destroy();
     
-    // FIX APPLIED HERE: maintainAspectRatio: true
+    // UPDATED: maintainAspectRatio: false (Wrapper in HTML prevents oval shape)
     doughnutChart = new Chart(ctxPie, { 
         type: 'doughnut', 
         data: { 
@@ -140,7 +146,7 @@ function renderCharts(data) {
         }, 
         options: { 
             responsive: true, 
-            maintainAspectRatio: true, // This forces it to be a perfect circle
+            maintainAspectRatio: false, 
             cutout: '70%' 
         } 
     });
