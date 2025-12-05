@@ -17,8 +17,7 @@ let barChart, doughnutChart;
 let globalBase64Image = "";
 let requestsMap = {}; 
 
-// --- UI LOGIC (Attached to Window) ---
-
+// --- UI LOGIC ---
 window.showSection = function(id) {
     document.getElementById('section-dashboard').style.display = id === 'dashboard' ? 'block' : 'none';
     document.getElementById('section-lostfound').style.display = id === 'lostfound' ? 'block' : 'none';
@@ -26,23 +25,18 @@ window.showSection = function(id) {
     document.getElementById('nav-dash').className = id === 'dashboard' ? 'active' : '';
     document.getElementById('nav-lf').className = id === 'lostfound' ? 'active' : '';
 };
-
 window.toggleSidebar = function() {
     document.getElementById('sidebar').classList.toggle('active');
     document.getElementById('sidebar-overlay').classList.toggle('active');
 };
-
 window.closeModal = function() { 
     document.getElementById('request-modal').style.display = "none"; 
 };
-
 window.onclick = function(e) { 
     if(e.target == document.getElementById('request-modal')) window.closeModal(); 
 };
 
-
-// --- AUTHENTICATION ---
-
+// --- AUTH ---
 window.login = async () => {
     try { 
         await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); 
@@ -50,7 +44,6 @@ window.login = async () => {
         document.getElementById('error-msg').innerText = err.message; 
     }
 };
-
 window.logout = () => signOut(auth);
 
 onAuthStateChanged(auth, u => {
@@ -64,9 +57,7 @@ onAuthStateChanged(auth, u => {
     }
 });
 
-
-// --- DATA LOGIC ---
-
+// --- DATA ---
 function initDashboard() {
     onValue(ref(db, 'Requests'), snap => {
         const data = snap.val();
@@ -139,7 +130,20 @@ function renderCharts(data) {
     
     const ctxPie = document.getElementById('doughnutChart').getContext('2d');
     if (doughnutChart) doughnutChart.destroy();
-    doughnutChart = new Chart(ctxPie, { type: 'doughnut', data: { labels: Object.keys(statuses), datasets: [{ data: Object.values(statuses), backgroundColor: ['#F57F17', '#004B8D', '#2E7D32', '#C62828'] }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%' } });
+    
+    // FIX APPLIED HERE: maintainAspectRatio: true
+    doughnutChart = new Chart(ctxPie, { 
+        type: 'doughnut', 
+        data: { 
+            labels: Object.keys(statuses), 
+            datasets: [{ data: Object.values(statuses), backgroundColor: ['#F57F17', '#004B8D', '#2E7D32', '#C62828'] }] 
+        }, 
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: true, // This forces it to be a perfect circle
+            cutout: '70%' 
+        } 
+    });
 }
 
 function renderTable(data) {
@@ -180,19 +184,16 @@ window.viewDetails = function(id) {
 }
 
 window.setStatus = (type, id, status) => update(ref(db, `Requests/${type}/${id}`), { Status: status });
-
 window.filterTable = () => {
     const filter = document.getElementById('searchInput').value.toUpperCase();
     const rows = document.getElementById("table-body").getElementsByTagName("tr");
     for (let row of rows) row.style.display = row.innerText.toUpperCase().includes(filter) ? "" : "none";
 };
-
 window.encodeImageFileAsURL = (el) => {
     const reader = new FileReader();
     reader.onloadend = () => globalBase64Image = reader.result;
     reader.readAsDataURL(el.files[0]);
 };
-
 window.postLostItem = () => {
     const n = document.getElementById('lf-name').value;
     const l = document.getElementById('lf-location').value;
@@ -201,5 +202,4 @@ window.postLostItem = () => {
     if(!n) return alert("Name required");
     push(ref(db, 'LostAndFound'), { ItemName: n, LocationFound: l, Description: d, DateFound: date, ImageUrl: globalBase64Image }).then(() => { alert("Posted!"); globalBase64Image=""; });
 };
-
 window.deleteLostItem = (key) => { if(confirm("Delete item?")) remove(ref(db, `LostAndFound/${key}`)); };
