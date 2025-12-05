@@ -28,10 +28,13 @@
 
         <div class="sidebar" id="sidebar">
             <div class="logo">
-                <h2>TrackMate</h2>
-                <span>ADMIN PANEL</span>
+                <div class="logo-text">
+                    <h2>TrackMate</h2>
+                    <span>ADMIN PANEL</span>
+                </div>
                 <button class="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
             </div>
+
             <ul class="nav">
                 <li onclick="showSection('dashboard'); toggleSidebar()" class="active" id="nav-dash">Overview</li>
                 <li onclick="showSection('lostfound'); toggleSidebar()" id="nav-lf">Lost & Found</li>
@@ -69,7 +72,9 @@
                     </div>
                     <div class="card chart-container">
                         <h3>Status</h3>
-                        <div class="canvas-wrapper"><canvas id="doughnutChart"></canvas></div>
+                        <div class="canvas-wrapper" style="display:flex; justify-content:center; align-items:center;">
+                            <canvas id="doughnutChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
