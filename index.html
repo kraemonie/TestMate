@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TrackMate Admin</title>
+    
     <link rel="stylesheet" href="style.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -144,20 +146,6 @@
     </div>
 
     <script type="module" src="app.js"></script>
-    <script>
-        function showSection(id) {
-            document.getElementById('section-dashboard').style.display = id === 'dashboard' ? 'block' : 'none';
-            document.getElementById('section-lostfound').style.display = id === 'lostfound' ? 'block' : 'none';
-            document.getElementById('page-title').innerText = id === 'dashboard' ? 'Dashboard' : 'Lost & Found';
-            document.getElementById('nav-dash').className = id === 'dashboard' ? 'active' : '';
-            document.getElementById('nav-lf').className = id === 'lostfound' ? 'active' : '';
-        }
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('sidebar-overlay').classList.toggle('active');
-        }
-        function closeModal() { document.getElementById('request-modal').style.display = "none"; }
-        window.onclick = function(e) { if(e.target == document.getElementById('request-modal')) closeModal(); }
-    </script>
+
 </body>
 </html>
