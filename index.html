@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>TrackMate Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackMate Admin</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -21,109 +22,117 @@
 
     <div id="dashboard-container" style="display: none;">
         
-        <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
-
-        <div class="sidebar" id="sidebar">
-            <div class="logo">
-                <h2>TrackMate</h2>
-                <span>ADMIN PANEL</span>
-                <button class="mobile-close-btn" onclick="toggleSidebar()">✕</button>
-            </div>
+        <div class="sidebar">
+            <div class="logo"><h2>TrackMate</h2><span>ADMIN PANEL</span></div>
             <ul class="nav">
-                <li onclick="showSection('dashboard'); toggleSidebar()" class="active">Overview</li>
-                <li onclick="showSection('lostfound'); toggleSidebar()">Lost & Found</li>
+                <li onclick="showSection('dashboard')" class="active">Overview</li>
+                <li onclick="showSection('lostfound')">Lost & Found</li>
                 <li onclick="logout()" style="color: #ff6b6b; margin-top:20px;">Log Out</li>
             </ul>
         </div>
 
         <div class="main-content">
-            
             <div class="header">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-                    <h1>Overview</h1>
-                </div>
-                <div class="user-profile"><span>Admin</span><div class="avatar">DO</div></div>
+                <h1>Dashboard Overview</h1>
+                <div class="user-profile"><span>Super Admin</span><div class="avatar">DO</div></div>
             </div>
 
             <div id="section-dashboard">
                 
                 <div class="stats-grid">
                     <div class="card stat-card"><h3>Total</h3><h1 id="total-count">0</h1></div>
-                    <div class="card stat-card"><h3 style="color: #F57F17;">Pending</h3><h1 id="pending-count">0</h1></div>
-                    <div class="card stat-card"><h3 style="color: #004B8D;">Review</h3><h1 id="ready-count">0</h1></div>
-                    <div class="card stat-card"><h3 style="color: #2E7D32;">Done</h3><h1 id="approved-count">0</h1></div>
+                    <div class="card stat-card"><h3 style="color: #F57F17;">Pending Teacher</h3><h1 id="pending-count">0</h1></div>
+                    <div class="card stat-card"><h3 style="color: #004B8D;">Ready for DO</h3><h1 id="ready-count">0</h1></div>
+                    <div class="card stat-card"><h3 style="color: #2E7D32;">Completed</h3><h1 id="approved-count">0</h1></div>
                 </div>
 
                 <div class="charts-grid">
                     <div class="card chart-container">
-                        <h3>By Type</h3>
+                        <h3>Requests by Type</h3>
                         <canvas id="barChart"></canvas>
                     </div>
                     <div class="card chart-container">
-                        <h3>Status</h3>
+                        <h3>Approval Status</h3>
                         <canvas id="doughnutChart"></canvas>
                     </div>
                 </div>
 
                 <div class="card table-container">
                     <div class="table-header">
-                        <h3>Queue</h3>
-                        <input type="text" id="searchInput" placeholder="Search..." onkeyup="filterTable()">
+                        <h3>Approval Queue</h3>
+                        <input type="text" id="searchInput" placeholder="Search students..." onkeyup="filterTable()">
                     </div>
-                    <div class="table-wrapper"> <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Type</th>
-                                    <th>Student</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-body"></tbody>
-                        </table>
-                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Student</th>
+                                <th>Details</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
                 </div>
             </div>
 
             <div id="section-lostfound" style="display: none;">
-                <div class="lf-container">
-                    <div class="card lf-form">
-                        <h2 style="color: #002F5D; margin-bottom: 20px;">Post Item</h2>
-                        <input type="text" id="lf-name" placeholder="Item Name" class="form-input">
-                        <input type="text" id="lf-location" placeholder="Location" class="form-input">
-                        <input type="text" id="lf-desc" placeholder="Description" class="form-input">
-                        <input type="text" id="lf-date" placeholder="Date" onfocus="(this.type='date')" class="form-input">
-                        <p style="font-size:12px; color:gray; margin-bottom:5px;">Photo:</p>
+                <div class="lf-layout">
+                    <div class="card lf-card">
+                        <h2 style="color: #002F5D; margin-bottom: 20px;">Post Found Item</h2>
+                        <input type="text" id="lf-name" placeholder="Item Name (e.g. Blue Umbrella)" class="form-input">
+                        <input type="text" id="lf-location" placeholder="Location Found (e.g. Library)" class="form-input">
+                        <input type="text" id="lf-desc" placeholder="Description / Contact Info" class="form-input">
+                        <input type="text" id="lf-date" placeholder="Date Found" onfocus="(this.type='date')" class="form-input">
+                        <p style="font-size:12px; color:gray; margin-bottom:5px;">Attach Photo:</p>
                         <input type="file" id="lf-image-file" accept="image/*" class="form-input" onchange="encodeImageFileAsURL(this)">
-                        <button onclick="postLostItem()" class="btn-primary" style="margin-top:15px;">POST</button>
+                        <button onclick="postLostItem()" class="btn-primary">POST TO APP</button>
                     </div>
-
-                    <div class="card lf-list" style="height: 500px; overflow-y: auto;">
-                        <h2 style="color: #002F5D;">Active</h2>
+                    
+                    <div class="card lf-card" style="overflow-y: auto; max-height: 500px;">
+                        <h2 style="color: #002F5D;">Active Items</h2>
                         <table style="width:100%; border-collapse: collapse;">
-                            <thead><tr style="border-bottom: 2px solid #eee; text-align: left;"><th>Item</th><th>Action</th></tr></thead>
+                            <thead><tr style="border-bottom:1px solid #eee; text-align:left;"><th>Item</th><th>Action</th></tr></thead>
                             <tbody id="lf-table-body"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
+    <div id="request-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="m-title" style="color:#002F5D; margin-top:0;">Request Details</h2>
+            <div id="m-status-badge" style="display:inline-block; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold; background:#eee; margin-bottom:15px;">Pending</div>
+
+            <div class="modal-row"><span class="label">Student:</span> <span id="m-student"></span></div>
+            <div class="modal-row"><span class="label">Date:</span> <span id="m-date"></span></div>
+            <div class="modal-row"><span class="label">Details:</span> <p id="m-details" style="background:#f9f9f9; padding:10px; border-radius:5px; margin-top:5px;"></p></div>
+
+            <div id="m-image-container" style="display:none; margin-top:15px;">
+                <span class="label">Attachment:</span>
+                <img id="m-image" class="modal-img" src="" alt="Attachment" style="width:100%; border-radius:8px; margin-top:5px; border:1px solid #ddd;">
+            </div>
+
+            <div id="m-actions" class="modal-actions" style="margin-top:20px; padding-top:20px; border-top:1px solid #eee; display:flex; gap:10px;"></div>
         </div>
     </div>
 
     <script type="module" src="app.js"></script>
     <script>
-        // Tab Switching Logic
         function showSection(id) {
             document.getElementById('section-dashboard').style.display = id === 'dashboard' ? 'block' : 'none';
             document.getElementById('section-lostfound').style.display = id === 'lostfound' ? 'block' : 'none';
         }
-        // Sidebar Toggle Logic
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('sidebar-overlay').classList.toggle('active');
+        function closeModal() {
+            document.getElementById('request-modal').style.display = "none";
+        }
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('request-modal')) closeModal();
         }
     </script>
 </body>
