@@ -15,7 +15,7 @@ const db = getDatabase(app);
 
 let barChart, doughnutChart;
 let globalBase64Image = "";
-let requestsMap = {}; // STORES DATA FOR POPUP
+let requestsMap = {}; 
 
 // --- AUTH ---
 window.login = async () => {
@@ -30,7 +30,7 @@ onAuthStateChanged(auth, u => {
     if(u) initDashboard();
 });
 
-// --- DASHBOARD DATA ---
+// --- DASHBOARD ---
 function initDashboard() {
     // REQUESTS
     onValue(ref(db, 'Requests'), snap => {
@@ -38,27 +38,41 @@ function initDashboard() {
         if(!data) { updateStats([]); return; }
 
         let all = [];
-        requestsMap = {}; // Clear Map
+        requestsMap = {}; 
 
         if(data.AdmissionSlip) process(data.AdmissionSlip, "Admission Slip", all);
         if(data.GatePass) process(data.GatePass, "Gate Pass", all);
         if(data.ExitPass) process(data.ExitPass, "Exit Pass", all);
 
         all.sort((a,b) => new Date(b.date) - new Date(a.date));
-        
         updateStats(all);
         renderCharts(all);
         renderTable(all);
     });
 
-    // LOST AND FOUND
+    // LOST & FOUND
     onValue(ref(db, 'LostAndFound'), snap => {
         const data = snap.val();
         const tbody = document.getElementById('lf-table-body');
         if(tbody) tbody.innerHTML = "";
+        
         if(data) {
             Object.keys(data).forEach(key => {
-                tbody.innerHTML += `<tr><td style="padding:10px; border-bottom:1px solid #eee;">${data[key].ItemName}</td><td><button onclick="deleteLostItem('${key}')" style="background:#FFEBEE; color:red; border:none; padding:5px; border-radius:4px; cursor:pointer;">Delete</button></td></tr>`;
+                const item = data[key];
+                const img = item.ImageUrl ? `<img src="${item.ImageUrl}" class="lf-thumb">` : `<div class="lf-thumb" style="background:#eee;display:flex;align-items:center;justify-content:center;">📷</div>`;
+                
+                tbody.innerHTML += `
+                    <tr style="border-bottom:1px solid #eee;">
+                        <td style="padding:10px;">${img}</td>
+                        <td style="padding:10px;">
+                            <div style="font-weight:bold; color:#004B8D;">${item.ItemName}</div>
+                            <div style="font-size:11px; color:#888;">${item.LocationFound} • ${new Date(item.DateFound).toLocaleDateString()}</div>
+                        </td>
+                        <td style="text-align:right; padding-right:10px;">
+                            <button class="btn-delete" onclick="deleteLostItem('${key}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
             });
         }
     });
@@ -68,17 +82,13 @@ function process(catData, type, arr) {
     Object.keys(catData).forEach(k => {
         const i = catData[k];
         const obj = { 
-            id: k, 
-            type: type, 
-            rawType: type.replace(" ",""), 
-            student: i.StudentEmail, 
-            date: i.RequestDate, 
-            status: i.Status, 
+            id: k, type: type, rawType: type.replace(" ",""), 
+            student: i.StudentEmail, date: i.RequestDate, status: i.Status, 
             details: i.Reason || i.ItemsToBring || i.ReasonCategory || i.Purpose,
             image: i.ParentLetterImage || null
         };
         arr.push(obj);
-        requestsMap[k] = obj; // STORE FOR MODAL
+        requestsMap[k] = obj;
     });
 }
 
@@ -90,16 +100,18 @@ function updateStats(data) {
 }
 
 function renderCharts(data) {
-    // Bar
+    // BAR CHART
     const types = { "Admission": 0, "Gate Pass": 0, "Exit Pass": 0 };
     data.forEach(x => { if(x.type.includes("Admission")) types["Admission"]++; else if(x.type.includes("Gate")) types["Gate Pass"]++; else types["Exit Pass"]++; });
+    
     const ctxBar = document.getElementById('barChart').getContext('2d');
     if (barChart) barChart.destroy();
     barChart = new Chart(ctxBar, { type: 'bar', data: { labels: Object.keys(types), datasets: [{ label: 'Requests', data: Object.values(types), backgroundColor: ['#004B8D', '#002F5D', '#FFD100'] }] }, options: { responsive: true, maintainAspectRatio: false } });
 
-    // Pie
+    // DOUGHNUT CHART
     const statuses = { "Pending": 0, "Ready DO": 0, "Done": 0, "Rejected": 0 };
     data.forEach(x => { if(x.status === "Pending") statuses["Pending"]++; else if(x.status === "Teacher Approved") statuses["Ready DO"]++; else if(x.status === "DO Approved") statuses["Done"]++; else statuses["Rejected"]++; });
+    
     const ctxPie = document.getElementById('doughnutChart').getContext('2d');
     if (doughnutChart) doughnutChart.destroy();
     doughnutChart = new Chart(ctxPie, { type: 'doughnut', data: { labels: Object.keys(statuses), datasets: [{ data: Object.values(statuses), backgroundColor: ['#F57F17', '#004B8D', '#2E7D32', '#C62828'] }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%' } });
@@ -109,63 +121,43 @@ function renderTable(data) {
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = "";
     data.slice(0, 50).forEach(item => {
-        let statusColor = "gray";
-        if(item.status === "Pending") statusColor = "#F57F17";
-        if(item.status === "Teacher Approved") statusColor = "#004B8D";
-        if(item.status === "DO Approved") statusColor = "#2E7D32";
-        if(item.status === "Rejected") statusColor = "#C62828";
+        let color = "#999";
+        if(item.status === "Pending") color = "#F57F17";
+        if(item.status === "Teacher Approved") color = "#004B8D";
+        if(item.status === "DO Approved") color = "#2E7D32";
+        if(item.status === "Rejected") color = "#C62828";
 
-        tbody.innerHTML += `<tr>
-            <td>${new Date(item.date).toLocaleDateString()}</td>
-            <td><b>${item.type}</b></td>
-            <td>${item.student}</td>
-            <td>${item.details.substring(0, 20)}...</td>
-            <td style="color:${statusColor}; font-weight:bold;">${item.status}</td>
-            <td><button onclick="viewDetails('${item.id}')" style="background:#EEE; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">View</button></td>
-        </tr>`;
+        const actionHtml = `<button onclick="viewDetails('${item.id}')" style="background:#EEE; color:#333; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px;">View</button>`;
+
+        tbody.innerHTML += `<tr><td>${new Date(item.date).toLocaleDateString()}</td><td><b>${item.type}</b></td><td>${item.student}</td><td><span style="color:${color}; font-weight:bold;">${item.status}</span></td><td>${actionHtml}</td></tr>`;
     });
 }
 
-// --- MODAL LOGIC (FIXED) ---
+// --- MODAL LOGIC ---
 window.viewDetails = function(id) {
     const item = requestsMap[id];
     if(!item) return;
-
-    // Fill Data
     document.getElementById('m-student').innerText = item.student;
     document.getElementById('m-date').innerText = new Date(item.date).toLocaleString();
     document.getElementById('m-details').innerText = item.details;
     document.getElementById('m-status-badge').innerText = item.status;
 
-    // Image
     const imgDiv = document.getElementById('m-image-container');
     const img = document.getElementById('m-image');
-    if(item.image) {
-        imgDiv.style.display = 'block';
-        img.src = item.image.startsWith('data:') ? item.image : `data:image/jpeg;base64,${item.image}`;
-    } else {
-        imgDiv.style.display = 'none';
-    }
+    if(item.image) { imgDiv.style.display = 'block'; img.src = item.image.startsWith('data:') ? item.image : `data:image/jpeg;base64,${item.image}`; } else { imgDiv.style.display = 'none'; }
 
-    // Actions
     const actions = document.getElementById('m-actions');
     actions.innerHTML = "";
-    
     if(item.status === "Teacher Approved") {
-        actions.innerHTML = `
-            <button onclick="updateStatus('${item.rawType}','${item.id}','DO Approved')" style="background:#2E7D32; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; width:100%;">Final Approve</button>
-            <button onclick="updateStatus('${item.rawType}','${item.id}','Rejected')" style="background:#C62828; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; width:100%;">Reject</button>
-        `;
+        actions.innerHTML = `<button onclick="setStatus('${item.rawType}','${item.id}','DO Approved'); closeModal()" class="btn-primary" style="background:#2E7D32; margin-right:10px;">Final Approve</button><button onclick="setStatus('${item.rawType}','${item.id}','Rejected'); closeModal()" class="btn-primary" style="background:#C62828;">Reject</button>`;
+    } else {
+        actions.innerHTML = `<span style="color:gray; font-size:12px;">No actions available.</span>`;
     }
-
     document.getElementById('request-modal').style.display = 'block';
 }
 
-window.updateStatus = (type, id, status) => {
-    update(ref(db, `Requests/${type}/${id}`), { Status: status }).then(() => document.getElementById('request-modal').style.display = 'none');
-};
-
 // --- UTILS ---
+window.setStatus = (type, id, status) => update(ref(db, `Requests/${type}/${id}`), { Status: status });
 window.filterTable = () => {
     const filter = document.getElementById('searchInput').value.toUpperCase();
     const rows = document.getElementById("table-body").getElementsByTagName("tr");
