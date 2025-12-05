@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDatabase, ref, onValue, update, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, onValue, update, push, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCkxjYgv3J7D28auhqehs7dvcdat8rIbtI",
@@ -13,16 +13,12 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// GLOBALS
-let barChart = null;
-let doughnutChart = null;
+let barChart, doughnutChart;
 let globalBase64Image = "";
 
-// --- AUTHENTICATION ---
+// AUTH
 window.login = async () => {
-    const e = document.getElementById('email').value;
-    const p = document.getElementById('password').value;
-    try { await signInWithEmailAndPassword(auth, e, p); } 
+    try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); } 
     catch(err) { document.getElementById('error-msg').innerText = err.message; }
 };
 window.logout = () => signOut(auth);
@@ -33,7 +29,7 @@ onAuthStateChanged(auth, u => {
     if(u) initDashboard();
 });
 
-// --- DASHBOARD DATA ---
+// DATA & CHARTS
 function initDashboard() {
     onValue(ref(db, 'Requests'), snap => {
         const data = snap.val();
@@ -45,157 +41,101 @@ function initDashboard() {
         if(data.ExitPass) process(data.ExitPass, "Exit Pass", all);
 
         all.sort((a,b) => new Date(b.date) - new Date(a.date));
-        
         updateStats(all);
         renderCharts(all);
         renderTable(all);
+    });
+
+    // Lost & Found Listener
+    onValue(ref(db, 'LostAndFound'), snap => {
+        const lfData = snap.val();
+        const tbody = document.getElementById('lf-table-body');
+        if(tbody) tbody.innerHTML = "";
+        if(lfData) {
+            Object.keys(lfData).forEach(key => {
+                tbody.innerHTML += `<tr><td style="padding:10px; border-bottom:1px solid #eee;">${lfData[key].ItemName}</td><td><button onclick="deleteLostItem('${key}')" style="background:#FFEBEE; color:red; border:none; padding:5px; border-radius:4px; cursor:pointer;">Delete</button></td></tr>`;
+            });
+        }
     });
 }
 
 function process(catData, type, arr) {
     Object.keys(catData).forEach(k => {
         const i = catData[k];
-        arr.push({
-            id: k, type: type, rawType: type.replace(" ", ""),
-            student: i.StudentEmail, date: i.RequestDate, status: i.Status,
-            details: i.Reason || i.ItemsToBring || i.ReasonCategory || i.Purpose
-        });
+        arr.push({ id: k, type: type, rawType: type.replace(" ",""), student: i.StudentEmail, date: i.RequestDate, status: i.Status, details: i.Reason || i.ItemsToBring || i.ReasonCategory });
     });
 }
 
 function updateStats(data) {
     document.getElementById('total-count').innerText = data.length;
-    document.getElementById('pending-count').innerText = data.filter(x => x.status === "Pending").length;
+    document.getElementById('pending-count').innerText = data.filter(x => x.status === "Pending" || x.status === "Teacher Approved").length;
     document.getElementById('ready-count').innerText = data.filter(x => x.status === "Teacher Approved").length;
     document.getElementById('approved-count').innerText = data.filter(x => x.status === "DO Approved").length;
 }
 
-// --- CHARTS ---
 function renderCharts(data) {
-    // BAR CHART
-    const types = {
-        "Admission": data.filter(x => x.type === "Admission Slip").length,
-        "Gate Pass": data.filter(x => x.type === "Gate Pass").length,
-        "Exit Pass": data.filter(x => x.type === "Exit Pass").length
-    };
-    
+    const types = { "Admission": 0, "Gate Pass": 0, "Exit Pass": 0 };
+    const statuses = { "Pending": 0, "Ready DO": 0, "Done": 0, "Rejected": 0 };
+
+    data.forEach(x => {
+        if(x.type.includes("Admission")) types["Admission"]++;
+        else if(x.type.includes("Gate")) types["Gate Pass"]++;
+        else types["Exit Pass"]++;
+
+        if(x.status === "Pending") statuses["Pending"]++;
+        else if(x.status === "Teacher Approved") statuses["Ready DO"]++;
+        else if(x.status === "DO Approved") statuses["Done"]++;
+        else statuses["Rejected"]++;
+    });
+
     const ctxBar = document.getElementById('barChart').getContext('2d');
     if (barChart) barChart.destroy();
     barChart = new Chart(ctxBar, {
         type: 'bar',
-        data: {
-            labels: Object.keys(types),
-            datasets: [{ label: 'Requests', data: Object.values(types), backgroundColor: ['#004B8D', '#002F5D', '#FFD100'] }]
-        },
+        data: { labels: Object.keys(types), datasets: [{ label: 'Requests', data: Object.values(types), backgroundColor: ['#004B8D', '#002F5D', '#FFD100'] }] },
         options: { responsive: true, maintainAspectRatio: false }
     });
-
-    // PIE CHART
-    const statuses = {
-        "Pending": data.filter(x => x.status === "Pending").length,
-        "Ready (DO)": data.filter(x => x.status === "Teacher Approved").length,
-        "Completed": data.filter(x => x.status === "DO Approved").length,
-        "Rejected": data.filter(x => x.status === "Rejected").length
-    };
 
     const ctxPie = document.getElementById('doughnutChart').getContext('2d');
     if (doughnutChart) doughnutChart.destroy();
     doughnutChart = new Chart(ctxPie, {
         type: 'doughnut',
-        data: {
-            labels: Object.keys(statuses),
-            datasets: [{ data: Object.values(statuses), backgroundColor: ['#F57F17', '#004B8D', '#2E7D32', '#C62828'], borderWidth: 0 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+        data: { labels: Object.keys(statuses), datasets: [{ data: Object.values(statuses), backgroundColor: ['#F57F17', '#004B8D', '#2E7D32', '#C62828'] }] },
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }
 
-// --- TABLE ---
 function renderTable(data) {
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = "";
-    
     data.slice(0, 50).forEach(item => {
-        let actionHtml = "";
-        let color = "#666";
-
-        if (item.status === "Pending") {
-            color = "#F57F17";
-            actionHtml = `<span style="color:gray; font-size:12px;">Waiting for Teacher</span>`;
-        } 
-        else if (item.status === "Teacher Approved") {
-            color = "#004B8D";
-            // Admin Action Buttons
-            actionHtml = `
-                <button onclick="setStatus('${item.rawType}', '${item.id}', 'DO Approved')" style="background:#2E7D32; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer;">Final Approve</button>
-                <button onclick="setStatus('${item.rawType}', '${item.id}', 'Rejected')" style="background:#C62828; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; margin-left:5px;">Reject</button>
-            `;
-        } 
-        else if (item.status === "DO Approved") {
-            color = "#2E7D32";
-            actionHtml = `<span style="color:#2E7D32; font-weight:bold;">✔ Complete</span>`;
-        }
-        else if (item.status === "Rejected") {
-            color = "#C62828";
-            actionHtml = `<span style="color:#C62828;">Rejected</span>`;
-        }
-
-        tbody.innerHTML += `<tr>
-            <td>${new Date(item.date).toLocaleDateString()}</td>
-            <td><b>${item.type}</b></td>
-            <td>${item.student}</td>
-            <td>${item.details}</td>
-            <td><span style="color:${color}; font-weight:bold;">${item.status}</span></td>
-            <td>${actionHtml}</td>
-        </tr>`;
+        let action = `<span style="color:#aaa">Done</span>`;
+        if(item.status === "Pending") action = `<span style="color:orange">Teacher Pending</span>`;
+        if(item.status === "Teacher Approved") action = `<button onclick="setStatus('${item.rawType}','${item.id}','DO Approved')" style="background:#2E7D32; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer;">Final Approve</button>`;
+        
+        tbody.innerHTML += `<tr><td>${new Date(item.date).toLocaleDateString()}</td><td>${item.type}</td><td>${item.student}</td><td><b>${item.status}</b></td><td>${action}</td></tr>`;
     });
 }
 
-// --- ACTIONS ---
+// ACTIONS
 window.setStatus = (type, id, status) => update(ref(db, `Requests/${type}/${id}`), { Status: status });
-
 window.filterTable = () => {
     const filter = document.getElementById('searchInput').value.toUpperCase();
     const rows = document.getElementById("table-body").getElementsByTagName("tr");
-    for (let row of rows) {
-        row.style.display = row.innerText.toUpperCase().includes(filter) ? "" : "none";
-    }
+    for (let row of rows) row.style.display = row.innerText.toUpperCase().includes(filter) ? "" : "none";
 };
-
-// --- LOST & FOUND (IMAGE LOGIC) ---
-
-// 1. Convert Image to Base64
-window.encodeImageFileAsURL = function(element) {
-    const file = element.files[0];
+window.encodeImageFileAsURL = (el) => {
     const reader = new FileReader();
-    reader.onloadend = function() {
-        globalBase64Image = reader.result;
-    }
-    reader.readAsDataURL(file);
-}
-
-// 2. Post Item
+    reader.onloadend = () => globalBase64Image = reader.result;
+    reader.readAsDataURL(el.files[0]);
+};
 window.postLostItem = () => {
     const n = document.getElementById('lf-name').value;
     const l = document.getElementById('lf-location').value;
     const d = document.getElementById('lf-desc').value;
     const date = document.getElementById('lf-date').value;
-
-    if(!n || !l) return alert("Name/Location required");
-    
-    push(ref(db, 'LostAndFound'), { 
-        ItemName: n, 
-        LocationFound: l, 
-        Description: d, 
-        DateFound: date,
-        ImageUrl: globalBase64Image // Save the image data
-    }).then(() => { 
-        alert("Posted!"); 
-        // Reset
-        document.getElementById('lf-name').value = "";
-        document.getElementById('lf-location').value = "";
-        document.getElementById('lf-desc').value = "";
-        document.getElementById('lf-image-file').value = "";
-        globalBase64Image = "";
-    });
+    if(!n) return alert("Name required");
+    push(ref(db, 'LostAndFound'), { ItemName: n, LocationFound: l, Description: d, DateFound: date, ImageUrl: globalBase64Image })
+        .then(() => { alert("Posted!"); globalBase64Image=""; });
 };
+window.deleteLostItem = (key) => { if(confirm("Delete item?")) remove(ref(db, `LostAndFound/${key}`)); };
