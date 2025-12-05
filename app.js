@@ -124,7 +124,6 @@ function renderCharts(data) {
     const ctxBar = document.getElementById('barChart').getContext('2d');
     if (barChart) barChart.destroy();
     
-    // UPDATED: maintainAspectRatio: false
     barChart = new Chart(ctxBar, { 
         type: 'bar', 
         data: { labels: Object.keys(types), datasets: [{ label: 'Requests', data: Object.values(types), backgroundColor: ['#004B8D', '#002F5D', '#FFD100'] }] }, 
@@ -137,7 +136,6 @@ function renderCharts(data) {
     const ctxPie = document.getElementById('doughnutChart').getContext('2d');
     if (doughnutChart) doughnutChart.destroy();
     
-    // UPDATED: maintainAspectRatio: false (Wrapper in HTML prevents oval shape)
     doughnutChart = new Chart(ctxPie, { 
         type: 'doughnut', 
         data: { 
