@@ -17,11 +17,40 @@ let barChart, doughnutChart;
 let globalBase64Image = "";
 let requestsMap = {}; 
 
-// AUTH
-window.login = async () => {
-    try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); } 
-    catch(err) { document.getElementById('error-msg').innerText = err.message; }
+// --- UI LOGIC (Attached to Window) ---
+
+window.showSection = function(id) {
+    document.getElementById('section-dashboard').style.display = id === 'dashboard' ? 'block' : 'none';
+    document.getElementById('section-lostfound').style.display = id === 'lostfound' ? 'block' : 'none';
+    document.getElementById('page-title').innerText = id === 'dashboard' ? 'Dashboard' : 'Lost & Found';
+    document.getElementById('nav-dash').className = id === 'dashboard' ? 'active' : '';
+    document.getElementById('nav-lf').className = id === 'lostfound' ? 'active' : '';
 };
+
+window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('active');
+    document.getElementById('sidebar-overlay').classList.toggle('active');
+};
+
+window.closeModal = function() { 
+    document.getElementById('request-modal').style.display = "none"; 
+};
+
+window.onclick = function(e) { 
+    if(e.target == document.getElementById('request-modal')) window.closeModal(); 
+};
+
+
+// --- AUTHENTICATION ---
+
+window.login = async () => {
+    try { 
+        await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); 
+    } catch(err) { 
+        document.getElementById('error-msg').innerText = err.message; 
+    }
+};
+
 window.logout = () => signOut(auth);
 
 onAuthStateChanged(auth, u => {
@@ -35,7 +64,9 @@ onAuthStateChanged(auth, u => {
     }
 });
 
-// DATA
+
+// --- DATA LOGIC ---
+
 function initDashboard() {
     onValue(ref(db, 'Requests'), snap => {
         const data = snap.val();
@@ -149,16 +180,19 @@ window.viewDetails = function(id) {
 }
 
 window.setStatus = (type, id, status) => update(ref(db, `Requests/${type}/${id}`), { Status: status });
+
 window.filterTable = () => {
     const filter = document.getElementById('searchInput').value.toUpperCase();
     const rows = document.getElementById("table-body").getElementsByTagName("tr");
     for (let row of rows) row.style.display = row.innerText.toUpperCase().includes(filter) ? "" : "none";
 };
+
 window.encodeImageFileAsURL = (el) => {
     const reader = new FileReader();
     reader.onloadend = () => globalBase64Image = reader.result;
     reader.readAsDataURL(el.files[0]);
 };
+
 window.postLostItem = () => {
     const n = document.getElementById('lf-name').value;
     const l = document.getElementById('lf-location').value;
@@ -167,4 +201,5 @@ window.postLostItem = () => {
     if(!n) return alert("Name required");
     push(ref(db, 'LostAndFound'), { ItemName: n, LocationFound: l, Description: d, DateFound: date, ImageUrl: globalBase64Image }).then(() => { alert("Posted!"); globalBase64Image=""; });
 };
+
 window.deleteLostItem = (key) => { if(confirm("Delete item?")) remove(ref(db, `LostAndFound/${key}`)); };
