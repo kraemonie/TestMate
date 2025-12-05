@@ -12,7 +12,7 @@
     <div id="login-container">
         <div class="login-card">
             <h2 style="color: #002F5D;">TrackMate Admin</h2>
-            <p>Discipline Office Portal</p>
+            <p style="color:gray; margin-bottom:20px;">Discipline Office Portal</p>
             <input type="email" id="email" placeholder="admin@trackmate.com">
             <input type="password" id="password" placeholder="Password">
             <button onclick="login()">Login</button>
@@ -23,102 +23,147 @@
     <div id="dashboard-container" style="display: none;">
         
         <div class="sidebar">
-            <div class="logo"><h2>TrackMate</h2><span>ADMIN PANEL</span></div>
+            <div class="logo">
+                <h2>TrackMate</h2>
+                <span>ADMIN PANEL</span>
+            </div>
             <ul class="nav">
-                <li onclick="showSection('dashboard')" class="active">Overview</li>
-                <li onclick="showSection('lostfound')">Lost & Found</li>
+                <li onclick="showSection('dashboard')" class="active" id="nav-dash">Overview</li>
+                <li onclick="showSection('lostfound')" id="nav-lf">Lost & Found</li>
                 <li onclick="logout()" style="color: #ff6b6b; margin-top:20px;">Log Out</li>
             </ul>
         </div>
 
         <div class="main-content">
+            
             <div class="header">
-                <h1>Dashboard Overview</h1>
-                <div class="user-profile"><span>Super Admin</span><div class="avatar">DO</div></div>
+                <div>
+                    <h1 id="page-title">Dashboard Overview</h1>
+                    <span style="font-size:12px; color:gray;">Welcome back, Admin</span>
+                </div>
+                <div class="user-profile">
+                    <span style="font-weight:bold; color:#002F5D;">Super Admin</span>
+                    <div class="avatar">DO</div>
+                </div>
             </div>
 
             <div id="section-dashboard">
-                
                 <div class="stats-grid">
-                    <div class="card stat-card"><h3>Total</h3><h1 id="total-count">0</h1></div>
-                    <div class="card stat-card"><h3 style="color: #F57F17;">Pending Teacher</h3><h1 id="pending-count">0</h1></div>
-                    <div class="card stat-card"><h3 style="color: #004B8D;">Ready for DO</h3><h1 id="ready-count">0</h1></div>
-                    <div class="card stat-card"><h3 style="color: #2E7D32;">Completed</h3><h1 id="approved-count">0</h1></div>
+                    <div class="card stat-card"><h3>Total Requests</h3><h1 id="total-count">0</h1></div>
+                    <div class="card stat-card"><h3 style="color:#F57F17">Pending Teacher</h3><h1 id="pending-count">0</h1></div>
+                    <div class="card stat-card"><h3 style="color:#004B8D">Ready for DO</h3><h1 id="ready-count">0</h1></div>
+                    <div class="card stat-card"><h3 style="color:#2E7D32">Completed</h3><h1 id="approved-count">0</h1></div>
                 </div>
 
                 <div class="charts-grid">
                     <div class="card chart-container">
-                        <h3>Requests by Type</h3>
-                        <canvas id="barChart"></canvas>
+                        <h3>Requests by Category</h3>
+                        <div class="canvas-wrapper"><canvas id="barChart"></canvas></div>
                     </div>
                     <div class="card chart-container">
                         <h3>Approval Status</h3>
-                        <canvas id="doughnutChart"></canvas>
+                        <div class="canvas-wrapper"><canvas id="doughnutChart"></canvas></div>
                     </div>
                 </div>
 
                 <div class="card table-container">
                     <div class="table-header">
-                        <h3>Approval Queue</h3>
+                        <h3>Recent Queue</h3>
                         <input type="text" id="searchInput" placeholder="Search students..." onkeyup="filterTable()">
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Student</th>
-                                <th>Details</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body"></tbody>
-                    </table>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th>Date</th><th>Type</th><th>Student</th><th>Status</th><th>Action</th></tr></thead>
+                            <tbody id="table-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <div id="section-lostfound" style="display: none;">
                 <div class="lf-layout">
-                    <div class="card lf-card">
-                        <h2 style="color: #002F5D; margin-bottom: 20px;">Post Found Item</h2>
-                        <input type="text" id="lf-name" placeholder="Item Name (e.g. Blue Umbrella)" class="form-input">
-                        <input type="text" id="lf-location" placeholder="Location Found (e.g. Library)" class="form-input">
-                        <input type="text" id="lf-desc" placeholder="Description / Contact Info" class="form-input">
-                        <input type="text" id="lf-date" placeholder="Date Found" onfocus="(this.type='date')" class="form-input">
-                        <p style="font-size:12px; color:gray; margin-bottom:5px;">Attach Photo:</p>
-                        <input type="file" id="lf-image-file" accept="image/*" class="form-input" onchange="encodeImageFileAsURL(this)">
+                    
+                    <div class="card lf-form-card">
+                        <h2 style="color:#002F5D; border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:20px;">Post New Item</h2>
+                        
+                        <div class="input-group">
+                            <label>Item Name</label>
+                            <input type="text" id="lf-name" placeholder="e.g. Blue Umbrella">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Location Found</label>
+                            <input type="text" id="lf-location" placeholder="e.g. Library Table 5">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Date Found</label>
+                            <input type="date" id="lf-date">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Description</label>
+                            <textarea id="lf-desc" rows="3" placeholder="Details about the item..."></textarea>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Photo</label>
+                            <div class="file-drop-area">
+                                <span id="file-label">Click to upload image</span>
+                                <input type="file" id="lf-image-file" accept="image/*" onchange="encodeImageFileAsURL(this)">
+                            </div>
+                        </div>
+
                         <button onclick="postLostItem()" class="btn-primary">POST TO APP</button>
                     </div>
-                    
-                    <div class="card lf-card" style="overflow-y: auto; max-height: 500px;">
-                        <h2 style="color: #002F5D;">Active Items</h2>
-                        <table style="width:100%; border-collapse: collapse;">
-                            <thead><tr style="border-bottom:1px solid #eee; text-align:left;"><th>Item</th><th>Action</th></tr></thead>
-                            <tbody id="lf-table-body"></tbody>
-                        </table>
+
+                    <div class="card lf-list-card">
+                        <h2 style="color:#002F5D; border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:0;">Active Items</h2>
+                        <div class="table-wrapper" style="height: 500px; overflow-y: auto;">
+                            <table style="width:100%;">
+                                <thead style="position: sticky; top: 0; background: white; z-index: 10;">
+                                    <tr><th style="width:60px;">Img</th><th>Details</th><th style="text-align:right;">Action</th></tr>
+                                </thead>
+                                <tbody id="lf-table-body"></tbody>
+                            </table>
+                        </div>
                     </div>
+
                 </div>
             </div>
+
         </div>
     </div>
 
     <div id="request-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2 id="m-title" style="color:#002F5D; margin-top:0;">Request Details</h2>
-            <div id="m-status-badge" style="display:inline-block; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold; background:#eee; margin-bottom:15px;">Pending</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="color:#002F5D; margin:0;">Request Details</h2>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            
+            <div id="m-status-badge" class="badge-large">Pending</div>
 
-            <div class="modal-row"><span class="label">Student:</span> <span id="m-student"></span></div>
-            <div class="modal-row"><span class="label">Date:</span> <span id="m-date"></span></div>
-            <div class="modal-row"><span class="label">Details:</span> <p id="m-details" style="background:#f9f9f9; padding:10px; border-radius:5px; margin-top:5px;"></p></div>
-
-            <div id="m-image-container" style="display:none; margin-top:15px;">
-                <span class="label">Attachment:</span>
-                <img id="m-image" class="modal-img" src="" alt="Attachment" style="width:100%; border-radius:8px; margin-top:5px; border:1px solid #ddd;">
+            <div class="modal-grid">
+                <div class="modal-item">
+                    <span class="label">Student</span>
+                    <span id="m-student" class="value"></span>
+                </div>
+                <div class="modal-item">
+                    <span class="label">Date</span>
+                    <span id="m-date" class="value"></span>
+                </div>
             </div>
 
-            <div id="m-actions" class="modal-actions" style="margin-top:20px; padding-top:20px; border-top:1px solid #eee; display:flex; gap:10px;"></div>
+            <span class="label" style="display:block; margin-top:15px;">Details</span>
+            <div id="m-details" class="details-box"></div>
+
+            <div id="m-image-container" style="display:none; margin-top:15px;">
+                <span class="label">Attachment</span>
+                <img id="m-image" class="modal-img" src="">
+            </div>
+
+            <div id="m-actions" class="modal-actions"></div>
         </div>
     </div>
 
@@ -127,13 +172,16 @@
         function showSection(id) {
             document.getElementById('section-dashboard').style.display = id === 'dashboard' ? 'block' : 'none';
             document.getElementById('section-lostfound').style.display = id === 'lostfound' ? 'block' : 'none';
+            
+            // Update Title
+            document.getElementById('page-title').innerText = id === 'dashboard' ? 'Dashboard Overview' : 'Lost & Found Manager';
+            
+            // Update Active State
+            document.getElementById('nav-dash').className = id === 'dashboard' ? 'active' : '';
+            document.getElementById('nav-lf').className = id === 'lostfound' ? 'active' : '';
         }
-        function closeModal() {
-            document.getElementById('request-modal').style.display = "none";
-        }
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('request-modal')) closeModal();
-        }
+        function closeModal() { document.getElementById('request-modal').style.display = "none"; }
+        window.onclick = function(e) { if(e.target == document.getElementById('request-modal')) closeModal(); }
     </script>
 </body>
 </html>
