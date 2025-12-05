@@ -49,15 +49,15 @@
 
             <div id="section-dashboard">
                 <div class="stats-grid">
-                    <div class="card stat-card"><h3>Total Requests</h3><h1 id="total-count">0</h1></div>
-                    <div class="card stat-card"><h3 style="color:#F57F17">Pending Teacher</h3><h1 id="pending-count">0</h1></div>
-                    <div class="card stat-card"><h3 style="color:#004B8D">Ready for DO</h3><h1 id="ready-count">0</h1></div>
-                    <div class="card stat-card"><h3 style="color:#2E7D32">Completed</h3><h1 id="approved-count">0</h1></div>
+                    <div class="card stat-card"><h3>Total</h3><h1 id="total-count">0</h1></div>
+                    <div class="card stat-card"><h3 style="color:#F57F17">Pending</h3><h1 id="pending-count">0</h1></div>
+                    <div class="card stat-card"><h3 style="color:#004B8D">Review</h3><h1 id="ready-count">0</h1></div>
+                    <div class="card stat-card"><h3 style="color:#2E7D32">Done</h3><h1 id="approved-count">0</h1></div>
                 </div>
 
                 <div class="charts-grid">
                     <div class="card chart-container">
-                        <h3>Requests by Category</h3>
+                        <h3>Requests by Type</h3>
                         <div class="canvas-wrapper"><canvas id="barChart"></canvas></div>
                     </div>
                     <div class="card chart-container">
@@ -82,22 +82,16 @@
 
             <div id="section-lostfound" style="display: none;">
                 <div class="lf-layout">
-                    
                     <div class="card lf-form-card">
-                        <h2 style="color:#002F5D; border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:20px;">Post New Item</h2>
-                        
+                        <h2 style="color:#002F5D; border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:20px;">Post Found Item</h2>
                         <div class="input-group"><label>Item Name</label><input type="text" id="lf-name" placeholder="e.g. Blue Umbrella"></div>
-                        <div class="input-group"><label>Location Found</label><input type="text" id="lf-location" placeholder="e.g. Library Table 5"></div>
+                        <div class="input-group"><label>Location Found</label><input type="text" id="lf-location" placeholder="e.g. Library"></div>
                         <div class="input-group"><label>Date Found</label><input type="date" id="lf-date"></div>
-                        <div class="input-group"><label>Description</label><textarea id="lf-desc" rows="3" placeholder="Details about the item..."></textarea></div>
-
+                        <div class="input-group"><label>Description</label><input type="text" id="lf-desc" placeholder="Details..."></div>
                         <div class="input-group">
                             <label>Photo</label>
-                            <div class="file-drop-area">
-                                <input type="file" id="lf-image-file" accept="image/*" onchange="encodeImageFileAsURL(this)">
-                            </div>
+                            <input type="file" id="lf-image-file" accept="image/*" onchange="encodeImageFileAsURL(this)">
                         </div>
-
                         <button onclick="postLostItem()" class="btn-primary">POST TO APP</button>
                     </div>
 
@@ -105,19 +99,18 @@
                         <h2 style="color:#002F5D; border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:0;">Active Items</h2>
                         <div class="table-wrapper" style="height: 500px; overflow-y: auto;">
                             <table style="width:100%;">
-                                <thead><tr style="text-align:left;"><th style="width:60px;">Img</th><th>Details</th><th style="text-align:right;">Action</th></tr></thead>
+                                <thead><tr style="text-align:left;"><th>Item</th><th>Action</th></tr></thead>
                                 <tbody id="lf-table-body"></tbody>
                             </table>
                         </div>
                     </div>
-
                 </div>
             </div>
 
         </div>
     </div>
 
-    <div id="request-modal" class="modal" style="display:none;">
+    <div id="request-modal" class="modal">
         <div class="modal-content">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h2 style="color:#002F5D; margin:0;">Request Details</h2>
@@ -127,8 +120,8 @@
             <div id="m-status-badge" class="badge-large">Pending</div>
 
             <div class="modal-grid">
-                <div class="modal-item"><span class="label">Student</span><span id="m-student" class="value"></span></div>
-                <div class="modal-item"><span class="label">Date</span><span id="m-date" class="value"></span></div>
+                <div><span class="label">Student</span><br><span id="m-student" class="value"></span></div>
+                <div><span class="label">Date</span><br><span id="m-date" class="value"></span></div>
             </div>
 
             <span class="label" style="display:block; margin-top:15px;">Details</span>
