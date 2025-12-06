@@ -105,12 +105,7 @@ td { padding: 12px 15px; border-bottom: 1px solid #f5f5f5; font-size: 13px; colo
     .charts-grid { grid-template-columns: 1fr; gap: 15px; }
     .chart-container { height: 250px; }
     
-    /* LOST & FOUND MOBILE FIX */
-    .lf-layout { grid-template-columns: 1fr; gap: 15px; }
-    
-    /* Larger touch targets for mobile inputs */
-    .input-group input, .input-group textarea { font-size: 16px; padding: 12px; }
-    .btn-primary { padding: 15px; }
+    .lf-layout { grid-template-columns: 1fr; }
     
     .table-header { flex-direction: column; align-items: flex-start; gap: 10px; }
     #searchInput { width: 100%; }
