@@ -19,7 +19,6 @@ body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #F4F6F9; heig
     display: flex; flex-direction: column; 
     z-index: 1000; transition: 0.3s; 
 }
-/* FIXED LOGO STYLES */
 .logo { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
 .logo-text { display: flex; flex-direction: column; }
 .logo h2 { margin: 0; font-size: 20px; color: white; line-height: 1.2; }
@@ -66,12 +65,12 @@ table { width: 100%; border-collapse: collapse; min-width: 600px; }
 th { text-align: left; background: #FAFAFA; color: #666; padding: 12px 15px; font-size: 12px; font-weight: 600; }
 td { padding: 12px 15px; border-bottom: 1px solid #f5f5f5; font-size: 13px; color: #333; }
 
-/* LOST & FOUND */
+/* LOST & FOUND (Default Desktop) */
 .lf-layout { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
-.input-group { margin-bottom: 12px; }
-.input-group label { display: block; font-size: 11px; font-weight: bold; color: #666; margin-bottom: 4px; }
-.input-group input, .input-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-family: inherit; }
-.btn-primary { width: 100%; background: #004B8D; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; font-size: 12px; font-weight: bold; color: #555; margin-bottom: 6px; }
+.input-group input, .input-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 14px; }
+.btn-primary { width: 100%; background: #004B8D; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
 .lf-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; background: #eee; }
 .btn-delete { background: #FFEBEE; color: #C62828; border: none; padding: 6px 10px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 11px; }
 
@@ -88,25 +87,50 @@ td { padding: 12px 15px; border-bottom: 1px solid #f5f5f5; font-size: 13px; colo
 .modal-actions { margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; justify-content: flex-end; }
 .modal-img { width: 100%; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px; max-height: 200px; object-fit: cover; }
 
-/* --- MOBILE RESPONSIVE --- */
-@media (max-width: 768px) {
+/* --- MOBILE RESPONSIVE (Aggressive Updates) --- */
+@media (max-width: 900px) {
+    /* Sidebar */
     .sidebar { position: fixed; left: -100%; height: 100%; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
     .sidebar.active { left: 0; }
     #sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 900; }
     #sidebar-overlay.active { display: block; }
     
+    /* Header */
     .menu-btn { display: block; }
     .close-sidebar-btn { display: block; }
     
-    .main-content { padding: 15px; }
+    /* Content Padding */
+    .main-content { padding: 10px; }
+    .card { padding: 15px; }
     
+    /* Dashboard Stacking */
     .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-    
     .charts-grid { grid-template-columns: 1fr; gap: 15px; }
     .chart-container { height: 250px; }
-    
-    .lf-layout { grid-template-columns: 1fr; }
-    
     .table-header { flex-direction: column; align-items: flex-start; gap: 10px; }
     #searchInput { width: 100%; }
+
+    /* --- LOST & FOUND MOBILE FIX --- */
+    .lf-layout { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 15px; 
+    }
+    
+    /* Bigger Inputs for Touch */
+    .input-group label { font-size: 13px; margin-bottom: 8px; }
+    .input-group input, .input-group textarea { 
+        font-size: 16px; /* Prevents iOS Zoom */
+        padding: 14px; 
+        border-radius: 8px;
+    }
+    .btn-primary { 
+        padding: 16px; 
+        font-size: 16px; 
+        margin-top: 10px;
+    }
+    
+    /* List Card */
+    .lf-list-card { order: 2; }
+    .lf-form-card { order: 1; }
 }
